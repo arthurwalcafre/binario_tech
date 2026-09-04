@@ -1,0 +1,16 @@
+===== INICIANDO TESTE CRUD =====
+Data/Hora: Wed Aug 26 09:14:08 PM UTC 2026
+---------------------------------
+[1] Cadastrando Veículo 1...
+{"id":3,"placa":"ABC-1234","montadora":"Scania","modelo":"R450","status":"DISPONIVEL"}
+
+[2] Cadastrando Veículo 2...
+{"id":4,"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540","status":"DISPONIVEL"}
+
+[3] Atualizando status do Veículo 1 para EM_ROTA...
+{"mensagem":"Status atualizado com sucesso!","veiculo":{"id":1,"placa":"ABC-9999","montadora":"Scania Nova","modelo":"R500","status":"EM_ROTA"}}
+
+[4] Deletando Veículo 2...
+{"mensagem":"Veiculo ID 2 removido com sucesso."}
+
+===== TESTES FINALIZADOS =====

@@ -1,0 +1,69 @@
+==========================================
+AUDITORIA DE ROTAS DA API - BINÁRIO TECH
+Data do Teste: Fri Aug 21 02:08:26 AM UTC 2026
+==========================================
+
+[1] GET - Telemetria Scania
+{
+  "montadora": "Scania",
+  "dados": [
+    {
+      "id": 1,
+      "modelo": "R450",
+      "vin": "9BS123456789",
+      "temperatura_motor": 88,
+      "status": "OK"
+    },
+    {
+      "id": 2,
+      "modelo": "S500",
+      "vin": "9BS987654321",
+      "temperatura_motor": 102,
+      "status": "ALERTA_AQUECIMENTO"
+    }
+  ]
+}
+
+[2] GET - Telemetria Mercedes-Benz
+{
+  "montadora": "Mercedes-Benz",
+  "dados": [
+    {
+      "id": 1,
+      "modelo": "Actros 2651",
+      "vin": "9BM111222333",
+      "temperatura_motor": 88,
+      "status": "OK"
+    },
+    {
+      "id": 2,
+      "modelo": "Atego 1719",
+      "vin": "9BM444555666",
+      "temperatura_motor": 102,
+      "status": "ALERTA_AQUECIMENTO"
+    }
+  ]
+}
+
+[3] POST - Scania (VIN Válido - 12 chars)
+{
+  "id": 3,
+  "modelo": "R540",
+  "vin": "9BS555444333",
+  "temperatura_motor": 99,
+  "status": "ALERTA_AQUECIMENTO"
+}
+
+[4] POST - Scania (VIN Inválido - Teste Middleware)
+{
+  "erro": "O código VIN deve ter exatamente 12 caracteres."
+}
+
+[5] GET - Rota Inexistente (404 Test)
+{
+  "erro": "Módulo ou Rota de Telemetria não encontrada."
+}
+
+==========================================
+AUDITORIA CONCLUÍDA
+==========================================
