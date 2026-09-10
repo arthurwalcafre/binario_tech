@@ -11,7 +11,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/binario_tech')
 
 app.use('/api/v1/alertas', alertaRoutes);
 
-app.listen(3000, () => {
+app.listen(3003, () => {
   console.log('Servidor rodando na porta 3000');
 });
 

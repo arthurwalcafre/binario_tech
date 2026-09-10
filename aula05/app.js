@@ -7,7 +7,7 @@ const motoristasRouter = require('./routes/motoristas');
 const manutencoesRouter = require('./routes/manutencoes');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3003;
 
 // Middlewares Globais
 app.use(cors());

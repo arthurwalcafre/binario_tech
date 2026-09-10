@@ -1,10 +1,10 @@
-
-nst express = require('express');
+const express = require('express');
 const app = express();
-const PORT = 3000;
+const PORT = 3003;
 
 app.use(express.json());
 
+// Rota de Status da Binario Tech
 app.get('/status', (req, res) => {
     res.json({
         servidor: "Binario Tech Core",
@@ -14,21 +14,13 @@ app.get('/status', (req, res) => {
     });
 });
 
+// Rota de Informacoes da Montadora Scania
 app.get('/scania/info', (req, res) => {
     res.json({
         montadora: "Scania",
-        foco: "Caminhoes Pesados e Onibus",
+        foco: "Caminhoes Pesados e Ônibus",
         sistema_telemetria: "Ativo",
         unidades_conectadas: 1420
-    });
-});
-
-app.get('/vw/info', (req, res) => {
-    res.json({
-        montadora: "Volkswagen",
-        foco: "Caminhões",
-        sistema_telemetria: "RIO",
-        unidades_conectadas: 1200
     });
 });
 
