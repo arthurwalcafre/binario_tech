@@ -1,3 +1,4 @@
+ HEAD
 === Auditoria de processos Node.js - Fri Sep 11 02:55:15 AM UTC 2026 ===
 root         673  0.0  0.0   9196  3988 ?        S    02:42   0:00 runuser -l arthur_w_oliveira -c export GOPATH=/home/arthur_w_oliveira/gopath:/google/gopath HOME=/home/arthur_w_oliveira CLOUD_SHELL=true EDITOR_IN_CLOUD_SHELL=true CLOUD_CODE_CLOUD_SHELL_AUTHENTICATION='true' CONSOLIDATE_GCA_SPARKS='true' GEMINI_DEFAULT_PROJECT='cloudshell-gca' MINIKUBE_FORCE_SYSTEMD=true MINIKUBE_HOME=/google/minikube MINIKUBE_WANTUPDATENOTIFICATION=false NEW_GCA_AUTH_FLOW=true  USE_GKE_GCLOUD_AUTH_PLUGIN=True USE_PARTITIONED_COOKIES=true USER_EMAIL='arthur.w.oliveira@edu.senai.br' PATH=/opt/gradle/bin:/opt/maven/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/usr/local/node_packages/node_modules/.bin:/home/arthur_w_oliveira/gopath/bin:/google/gopath/bin:/home/arthur_w_oliveira/.gems/bin CLOUD_SHELL_FRAME_ANCESTORS="https://*.corp.google.com:* https://*.sandbox.google.com:* https://console.cloud.google.com https://console.firebase.google.com https://ide.cloud.google.com https://shell.cloud.google.com https://ssh.cloud.google.com"  && cd /google/devshell/editor/code-oss-for-cloud-shell && ./bin/codeoss-cloudshell --host=0.0.0.0 --port=971
 arthur_+     696  0.7  1.6 1768592 134604 ?      Sl   02:42   0:05 /google/devshell/editor/code-oss-for-cloud-shell/node /google/devshell/editor/code-oss-for-cloud-shell/out/server-main.js --host=0.0.0.0 --port=971
@@ -18,3 +19,40 @@ arthur_+    1610  0.8  0.8 1465900 72092 ?       Sl   14:48   0:00 /google/devsh
 arthur_+    1987 23.5  2.5 18609212 204584 ?     Sl   14:48   0:07 /google/devshell/editor/code-oss-for-cloud-shell/node /google/devshell/editor/code-oss-for-cloud-shell/extensions/geminicodeassist/agent/a2a-server.mjs
 arthur_+    1994 18.9  9.0 2302428 735612 ?      Sl   14:48   0:06 /google/devshell/editor/code-oss-for-cloud-shell/node /google/devshell/editor/code-oss-for-cloud-shell/extensions/cloudcode/dist/server/server.js --node-ipc --clientProcessId=1491
 arthur_+    2037  0.0  0.0   6548  2400 pts/2    S<+  14:48   0:00 grep node
+=======
+bruno.r+   82506  0.0  0.0 1015192 63600 pts/13  Sl   10:29   0:00 node server.js
+luis.he+   92260  0.0  0.0 1016432 63284 ?       Sl   10:52   0:00 node server.js
+ana.liv+   95571  0.0  0.1 1017700 67200 pts/28  Sl   11:03   0:00 node server.js
+eduarda+  104651  0.0  0.1 1070636 69568 pts/9   Sl   11:24   0:00 node iniciar-mongo-memoria.js
+eduarda+  104664  0.0  0.0 1010648 56680 ?       Ssl  11:24   0:00 /usr/bin/node /home/eduarda.kramer/binario_tech/aula11/node_modules/mongodb-memory-server-core/scripts/mongo_killer.js 104651 104663
+eduarda+  105031  0.0  0.1 1070724 69336 pts/9   Sl   11:25   0:00 node iniciar-mongo-memoria.js
+eduarda+  105044  0.0  0.0 1010632 56780 ?       Ssl  11:25   0:00 /usr/bin/node /home/eduarda.kramer/binario_tech/aula11/node_modules/mongodb-memory-server-core/scripts/mongo_killer.js 105031 105043
+ana.liv+  105374  0.0  0.1 1015680 66172 pts/28  Sl   11:26   0:00 node server.js
+eduarda+  105548  0.0  0.1 1070628 70032 pts/9   Sl   11:26   0:00 node iniciar-mongo-memoria.js
+eduarda+  105564  0.0  0.0 1010336 56696 ?       Ssl  11:26   0:00 /usr/bin/node /home/eduarda.kramer/binario_tech/aula11/node_modules/mongodb-memory-server-core/scripts/mongo_killer.js 105548 105563
+eduarda+  105635  0.0  0.1 1076776 81920 pts/9   Sl+  11:26   0:05 node server.js
+talyson+  106755  0.0  0.0 1015176 64696 pts/18  Sl+  11:30   0:00 node src/server.js
+julia.s+  106985  0.0  0.0 1014556 63724 pts/29  Sl   11:31   0:00 node server.js
+gabriel+  115010  0.0  0.0 1013804 61548 pts/11  Sl   12:37   0:00 node servidor_check.js
+myguel.+  115056  0.0  0.0 1013648 62308 pts/17  Sl   12:37   0:00 node servidor_check.js
+bruno.r+  115064  0.0  0.0 1013760 62164 pts/13  Sl   12:37   0:00 node servidor_check.js
+erick.s+  115082  0.0  0.0 1013804 61964 pts/6   Sl   12:37   0:00 node servidor_check.js
+murilo.+  115111  0.0  0.0 1015412 61076 pts/0   Sl   12:37   0:00 node servidor_check.js
+juliana+  115161  0.0  0.0 1015148 59492 pts/16  Sl   12:37   0:00 node servidor_check.js
+ana.liv+  115193  0.0  0.0 1014028 61544 pts/28  Sl   12:37   0:00 node servidor_check.js
+felipe.+  115274  0.0  0.0 1013756 62088 pts/22  Sl   12:37   0:00 node servidor_check.js
+maely.p+  115292  0.0  0.0 994140 51576 pts/32   Sl   12:37   0:00 node servidor_check.js
+daniel.+  115355  0.0  0.0 1013740 61900 pts/15  Sl   12:38   0:00 node servidor_check.js
+arthur.+  115709  0.0  0.0 1013776 62020 pts/14  Sl   12:38   0:00 node servidor_check.js
+luis.he+  115738  0.0  0.0 1014016 61920 pts/34  Sl   12:38   0:00 node servidor_check.js
+maria.e+  116255  0.0  0.0 1015276 59980 pts/5   Sl   12:40   0:00 node servidor_check.js
+murilo.+  116842  0.0  0.0 1013768 62112 pts/1   Sl   12:41   0:00 node servidor_check.js
+maria.m+  118417  0.0  0.0 1013508 60560 pts/20  Sl   12:46   0:00 node servidor_check.js
+lana.sa+  118819  0.0  0.0 1013736 62052 pts/26  Sl   12:48   0:00 node servidor_check.js
+kenzo.t+  121011  0.0  0.0 1015504 60092 pts/7   Sl   13:03   0:00 node servidor_check.js
+nicolla+  121279  0.0  0.0 1014380 60676 pts/10  Sl   13:04   0:00 node servidor_check.js
+nicolla+  121523  0.0  0.0 1014128 61076 pts/10  Sl   13:07   0:00 node servidor_check.js
+felipe.+  122535  0.0  0.0 1013840 62160 pts/25  Sl+  13:13   0:00 node servidor_check.js
+emily.s+  124318  0.1  0.0 1013512 60524 pts/48  Sl+  13:30   0:00 node servidor_check.js
+arthur.+  124854  0.0  0.0   6540  2500 pts/50   S+   13:33   0:00 grep node
+>>>>>>> 8aa4939 (Aula 18)
