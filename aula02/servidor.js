@@ -24,6 +24,15 @@ app.get('/scania/info', (req, res) => {
     });
 });
 
+app.get('/vw/info', (req, res) => {
+  res.json({
+    montadora: "Volkswagen",
+    sistema_telemetria: "VW Connect",
+    status: "Ativo"
+  });
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando com sucesso na porta ${PORT}`);
 });
+

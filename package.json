@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/arthurwalcafre/binario_tech/issues"
   },
-  "homepage": "https://github.com/arthurwalcafre/binario_tech#readme"
+  "homepage": "https://github.com/arthurwalcafre/binario_tech#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
