@@ -94,6 +94,23 @@ app.put('/api/v1/veiculos/:id', (req, res) => {
     res.status(200).json({ mensagem: "Veiculo atualizado completamente com sucesso!", veiculo: veiculos[index] });
 });
 
+app.patch('/api/v1/veiculos/:id', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    res.json({
+        mensagem: `Status do veiculo ID ${id} atualizado com sucesso.`,
+        novoStatus: status
+    });
+});
+
+
+
+
+
+
+
 app.listen(PORT, () => {
     console.log(`[Binario Tech] API de Frotas rodando em http://localhost:${PORT}`);
 });
+
