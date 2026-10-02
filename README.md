@@ -1495,3 +1495,105 @@ Pra que serve: versiona e envia todo o trabalho da aula 19 pro repositório remo
 
 
 
+## Aula 20 - Proxy Reverso com Nginx
+
+### Exercício 1
+O que fazer: Criar o bloco `location /status-nginx` no Nginx, retornando um JSON fixo com status 200, sem passar pela aplicação Node.
+
+No arquivo `/etc/nginx/sites-available/binario_aluno.conf`, dentro do bloco `server`:
+location /status-nginx {
+    default_type application/json;
+    return 200 '{"status": "ativo", "servico": "Nginx Binario Tech"}';
+}
+
+Comando pra aplicar e testar:
+sudo nginx -t
+sudo service nginx reload
+curl -s http://localhost:8080/status-nginx | jq .
+
+Pra que serve: o `return 200 '...'` faz o próprio Nginx responder direto, sem nem acionar o `proxy_pass` — mostra que o Nginx pode servir conteúdo estático/fixo sem depender do Node pra tudo.
+
+### Exercício 2
+O que fazer: Adicionar `client_max_body_size 2M;` no Nginx, pra barrar requisições com payload maior que 2MB.
+
+No bloco `server` do `binario_aluno.conf`:
+client_max_body_size 2M;
+
+Comando pra testar (manda ~3MB de propósito):
+curl -s -i -X POST http://localhost:8080/api/v1/proxy/ \
+  -H "Content-Type: application/json" \
+  -d "$(head -c 3000000 /dev/zero | tr '\0' 'a')"
+
+Pra que serve: protege o servidor contra payloads excessivos (um ataque comum ou erro de cliente) — o Nginx barra **antes** da requisição chegar no Node, com `413 Request Entity Too Large`.
+
+### Exercício 3
+O que fazer: Script `analisar_logs_nginx.sh` que lê as últimas 15 linhas do log de acesso e filtra só as com status 200.
+
+Comando pra criar:
+cat > analisar_logs_nginx.sh << 'EOF'
+#!/bin/bash
+echo "=== Últimas 15 linhas com status 200 OK ==="
+sudo tail -n
+
+
+
+## Aula 21 - CI/CD Local: Pipeline de Deploy, Logs e Git Hooks
+
+### Exercício 1
+O que fazer: Mudar a versão no `server.js` pra "1.0.1", commitar localmente e rodar o `./deploy.sh`, confirmando a mudança no endpoint.
+
+Comando pra editar (atenção: a chave não tem aspas no JS, é `versao:`, não `"versao":`):
+sed -i 's/versao: "1.0.0"/versao: "1.0.1"/' server.js
+
+Comando pra commitar e rodar o deploy:
+cd ~/curso-pbe1/binario_tech
+git add aula21/server.js
+git commit -m "fix: aula21 - versao 1.0.1"
+cd aula21
+./deploy.sh
+curl -s http://localhost:3003/api/v1/versao | jq .
+
+Pra que serve: simula o fluxo real de deploy — muda o código, commita, e deixa o script `deploy.sh` cuidar de puxar, instalar dependências e reiniciar o processo sozinho. O `curl` final confirma que a versão nova realmente "pegou" no servidor rodando.
+
+### Exercício 2
+O que fazer: Adicionar ao `deploy.sh` um passo que grava data/hora e hash do commit a cada deploy, em `deploy_history.log`.
+
+Comando pra adicionar ao final do script:
+cat >> deploy.sh << 'EOF'
+
+echo "[LOG] Registrando deploy no historico..."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Commit: $(git rev-parse --short HEAD)" >> deploy_history.log
+EOF
+
+Comando pra testar:
+./deploy.sh
+cat deploy_history.log
+
+Pra que serve: `git rev-parse --short HEAD` pega os primeiros caracteres do hash do commit atual — isso cria um histórico rastreável de qual versão exata do código foi publicada em cada deploy, útil pra auditoria ou pra saber rapidinho "qual commit tá em produção agora".
+
+### Exercício 3
+O que fazer: Criar o Git Hook `post-commit`, que dispara o `deploy.sh` automaticamente sempre que um commit é feito.
+
+Comando pra criar:
+cat > ~/curso-pbe1/binario_tech/.git/hooks/post-commit << 'EOF'
+#!/bin/bash
+echo "[HOOK] Novo commit detectado na branch main. Disparando deploy..."
+cd ~/curso-pbe1/binario_tech/aula21
+./deploy.sh
+EOF
+chmod +x ~/curso-pbe1/binario_tech/.git/hooks/post-commit
+
+Comando pra testar (commit vazio só pra disparar o hook):
+git commit --allow-empty -m "teste: disparo do hook post-commit"
+
+Pra que serve: Git Hooks são scripts que o próprio Git executa sozinho em certos eventos — o `post-commit` roda automaticamente logo depois que qualquer commit é finalizado, sem precisar chamar `./deploy.sh` manualmente. É assim que uma esteira de CI/CD de verdade funciona.
+
+### Exercício 4
+O que fazer: Commit e push dos arquivos da `aula21` (`server.js`, `deploy.sh`, `package.json`) pro GitHub.
+
+Comando:
+git add .
+git commit -m "feat: aula21 - pipeline de deploy, log de historico e git hook post-commit"
+git push origin main
+
+Pra que serve: versiona e envia pro repositório remoto todo o trabalho da aula — o pipeline de deploy, o script com o log de histórico, e a configuração do hook (o próprio arquivo do hook, por padrão, fica fora do controle de versão do Git, mas o script `deploy.sh` que ele chama vai junto).
