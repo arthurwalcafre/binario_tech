@@ -307,124 +307,479 @@ Pra que serve: o primeiro comando lista os processos e filtra os que mencionam "
 
 
 
-## Aula 04 - API RESTful de Frota de Veículos
+## Aula 04 - API RESTful de Frota de Veículos (versão prova)
 
-### Exercício 1
-O que fazer: Buscar apenas o veículo de ID 1 via GET e exibir formatado com `jq`.
+### Antes de começar (leia primeiro)
+
+- **Porta:** usei **3003**. Se o enunciado da prova pedir outra porta, troque só no Passo 0 (o resto do README usa a variável `$PORTA`).
+- **Pasta:** usei `prova_aula04`. Se o enunciado pedir outro nome, troque no Passo 1.
+- **Os dados ficam na MEMÓRIA.** Se você parar o servidor e subir de novo, tudo volta ao início (só 2 veículos: ID 1 e ID 2).
+- **Ordem dos exercícios:** faça do 1 ao 6 **sem reiniciar** o servidor. O Exercício 5 usa o veículo de ID 3, que só existe porque o Exercício 2 cadastrou ele. O servidor só é reiniciado no Exercício 7.
+- **Não apague veículos antes do Exercício 5.** O ID novo é calculado pelo tamanho da lista, e apagar no meio pode gerar ID repetido.
+- **URL com `?` sempre entre aspas** (`"http://...?status=DISPONIVEL"`), senão o terminal se confunde.
+- **Para ver o status HTTP** (201, 400, 404) use `curl -i`.
+
+---
+
+### Passo 0 - Definir a porta
 
 Comando:
-curl -s http://localhost:3003/api/v1/veiculos/1 | jq .
+```
+export PORTA=3003
+```
 
-Pra que serve: o `curl -s` busca o veículo específico pelo ID na URL. O `jq .` (só o ponto) formata o JSON de resposta de forma legível, com indentação e cores.
+Pra que serve: guarda a porta numa variável. Assim, se a prova pedir outra porta, você troca só aqui. A variável vale só pro terminal aberto: se reconectar o SSH ou abrir outro terminal, rode de novo.
+
+---
+
+### Passo 1 - Criar a pasta da prova e instalar o Express
+
+Comando:
+```
+cd ~/binario_tech
+git pull origin main
+mkdir -p prova_aula04
+cd prova_aula04
+npm init -y
+npm install express
+```
+
+Pra que serve:
+- `cd ~/binario_tech` entra no repositório (no Cloud Shell o caminho é `~/curso-pbe1/binario_tech`).
+- `git pull origin main` atualiza o repositório com o que já está no GitHub.
+- `mkdir -p prova_aula04` cria a pasta da prova, e `cd prova_aula04` entra nela.
+- `npm init -y` cria o `package.json`.
+- `npm install express` instala o Express (cria a pasta `node_modules`).
+
+---
+
+### Passo 2 - Criar o arquivo frota_api.js
+
+Comando:
+```
+cat > frota_api.js << 'EOF'
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3003;
+
+app.use(express.json());
+
+// Banco de dados em memoria
+let veiculos = [
+    { id: 1, placa: "ABC-1234", montadora: "Scania", modelo: "R450", status: "DISPONIVEL" },
+    { id: 2, placa: "XYZ-9876", montadora: "Mercedes-Benz", modelo: "Actros", status: "EM_ROTA" }
+];
+
+// 1. GET /api/v1/veiculos - Listar todos os veiculos (Suporta filtro por status query param)
+app.get('/api/v1/veiculos', (req, res) => {
+    const { status } = req.query;
+    if (status) {
+        const filtrados = veiculos.filter(v => v.status.toUpperCase() === status.toUpperCase());
+        return res.status(200).json(filtrados);
+    }
+    res.status(200).json(veiculos);
+});
+
+// 2. GET /api/v1/veiculos/:id - Buscar veiculo por ID
+app.get('/api/v1/veiculos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const veiculo = veiculos.find(v => v.id === id);
+    if (!veiculo) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado na base de dados." });
+    }
+    res.status(200).json(veiculo);
+});
+
+// 3. POST /api/v1/veiculos - Cadastrar novo veiculo (Criacao)
+app.post('/api/v1/veiculos', (req, res) => {
+    const { placa, montadora, modelo } = req.body;
+    if (!placa || !montadora || !modelo) {
+        return res.status(400).json({ erro: "Campos 'placa', 'montadora' e 'modelo' sao obrigatorios." });
+    }
+    const novoVeiculo = {
+        id: veiculos.length + 1,
+        placa,
+        montadora,
+        modelo,
+        status: "DISPONIVEL"
+    };
+    veiculos.push(novoVeiculo);
+    res.status(201).json(novoVeiculo);
+});
+
+// 4. PATCH /api/v1/veiculos/:id/status - Atualizar status do veiculo
+app.patch('/api/v1/veiculos/:id/status', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    const veiculo = veiculos.find(v => v.id === id);
+
+    if (!veiculo) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    if (!status) {
+        return res.status(400).json({ erro: "O campo 'status' e obrigatorio." });
+    }
+
+    veiculo.status = status.toUpperCase();
+    res.status(200).json({ mensagem: "Status atualizado com sucesso!", veiculo });
+});
+
+// 5. DELETE /api/v1/veiculos/:id - Remover veiculo da frota
+app.delete('/api/v1/veiculos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = veiculos.findIndex(v => v.id === id);
+    if (index === -1) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    veiculos.splice(index, 1);
+    res.status(200).json({ mensagem: `Veiculo ID ${id} removido com sucesso.` });
+});
+
+app.listen(PORT, () => {
+    console.log(`[Binario Tech] API de Frotas rodando em http://localhost:${PORT}`);
+});
+EOF
+```
+
+Pra que serve: cria o arquivo `frota_api.js` já com o código dentro. As aspas em `'EOF'` são obrigatórias, senão o terminal estraga o `${PORT}` e as crases do código. Confira com `ls`: tem que aparecer `frota_api.js`.
+
+Se a prova pedir o servidor **já com a rota PUT**, use direto o arquivo completo do Exercício 7 neste passo.
+
+---
+
+### Passo 3 - Subir o servidor e testar
+
+Comando:
+```
+PORT=$PORTA node frota_api.js &
+curl -s http://localhost:$PORTA/api/v1/veiculos | jq .
+```
+
+Pra que serve: o `&` roda o servidor em segundo plano, e o terminal fica livre pros testes. Aparece a mensagem `[Binario Tech] API de Frotas rodando em http://localhost:3003` (aperte Enter se o prompt não voltar). O `curl` deve listar os 2 veículos iniciais.
+
+**Cuidado:** aqui rode só esse `GET`. Os testes de POST, PATCH e DELETE são os próprios exercícios, e fazer antes bagunça os IDs.
+
+Para parar o servidor (qualquer um dos dois jeitos):
+```
+pkill -f frota_api.js
+```
+ou
+```
+ps aux | grep node
+kill -9 <PID>
+```
+No segundo, troque `<PID>` pelo número da segunda coluna da linha do `node frota_api.js`.
+
+---
+
+### Exercício 1
+O que fazer: Buscar apenas o veículo de ID 1 com GET e mostrar formatado com `jq`.
+
+Comando:
+```
+curl -s http://localhost:$PORTA/api/v1/veiculos/1 | jq .
+```
+
+Pra que serve: o `/1` no final da URL é o ID. O `jq .` deixa o JSON bonito. Resultado esperado: o veículo Scania R450, placa ABC-1234.
 
 ---
 
 ### Exercício 2
-O que fazer: Cadastrar um caminhão Volvo (modelo FH 540, placa KLL-9090) via POST e confirmar o status 201 Created.
+O que fazer: Cadastrar um caminhão Volvo (modelo FH 540, placa KLL-9090) com POST e confirmar o status 201 Created.
 
 Comando:
-curl -s -i -X POST http://localhost:3003/api/v1/veiculos \
+```
+curl -s -i -X POST http://localhost:$PORTA/api/v1/veiculos \
   -H "Content-Type: application/json" \
-  -d '{"montadora": "Volvo", "modelo": "FH 540", "placa": "KLL-9090"}'
+  -d '{"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540"}'
+```
 
-Pra que serve: `-X POST` define o método da requisição. `-H` define o cabeçalho avisando que o corpo é JSON. `-d` manda os dados do novo veículo. O `-i` faz o curl mostrar os cabeçalhos da resposta (incluindo o status code), pra você conseguir ver o `201 Created`.
+Pra que serve: `-X POST` define o método, `-H` avisa que o corpo é JSON, `-d` manda os dados e `-i` mostra o cabeçalho da resposta. Resultado esperado: `HTTP/1.1 201 Created` e o veículo novo com `"id": 3`.
 
 ---
 
 ### Exercício 3
-O que fazer: Tentar cadastrar um veículo sem o campo `placa` e confirmar que retorna 400 Bad Request.
+O que fazer: Tentar cadastrar um veículo sem o campo `placa` e confirmar o 400 Bad Request.
 
 Comando:
-curl -s -i -X POST http://localhost:3003/api/v1/veiculos \
+```
+curl -s -i -X POST http://localhost:$PORTA/api/v1/veiculos \
   -H "Content-Type: application/json" \
-  -d '{"montadora": "Volvo", "modelo": "FH 540"}'
+  -d '{"montadora":"Volvo","modelo":"FH 540"}'
+```
 
-Pra que serve: mesma lógica do exercício anterior, só que de propósito sem o campo `placa` — isso testa se a API valida os dados de entrada corretamente (validação é responsabilidade do back-end, nunca confiar só no front).
+Pra que serve: testa a validação. Resultado esperado: `HTTP/1.1 400 Bad Request` e a mensagem dizendo que `placa`, `montadora` e `modelo` são obrigatórios.
 
 ---
 
 ### Exercício 4
-O que fazer: Filtrar veículos pelo status, usando query param na URL.
+O que fazer: Filtrar os veículos pelo status usando query param.
 
 Comando:
-curl -s "http://localhost:3003/api/v1/veiculos?status=DISPONIVEL" | jq .
+```
+curl -s "http://localhost:$PORTA/api/v1/veiculos?status=DISPONIVEL" | jq .
+```
 
-Pra que serve: o `?status=DISPONIVEL` depois da URL é um "query param" — um filtro passado na própria URL. A API lê esse parâmetro e devolve só os veículos que batem com o filtro. (Usei aspas na URL por causa do `&`/`?`, pra o terminal não interpretar errado.)
+Pra que serve: o `?status=DISPONIVEL` é um filtro passado na URL (por isso as aspas). Resultado esperado: só os veículos DISPONIVEL (o Scania de ID 1 e o Volvo de ID 3).
 
 ---
 
 ### Exercício 5
-O que fazer: Atualizar o status do veículo de ID 3 pra "EM_ROTA" usando PATCH.
+O que fazer: Atualizar o status do veículo de ID 3 para EM_ROTA com PATCH.
 
 Comando:
-curl -s -i -X PATCH http://localhost:3003/api/v1/veiculos/3 \
+```
+curl -s -X PATCH http://localhost:$PORTA/api/v1/veiculos/3/status \
   -H "Content-Type: application/json" \
-  -d '{"status": "EM_ROTA"}'
+  -d '{"status":"EM_ROTA"}' | jq .
+```
 
-Pra que serve: `PATCH` é o método HTTP usado pra atualizar só uma parte dos dados (diferente do `PUT`, que substitui tudo). Aqui só o campo `status` é alterado, o resto do veículo continua igual.
+Pra que serve: o PATCH muda só uma parte do veículo (o status). **A URL termina em `/status`**: sem isso a rota não existe e dá erro. Resultado esperado: a mensagem "Status atualizado com sucesso!" e o veículo 3 com `"status": "EM_ROTA"`. Pra conferir:
+```
+curl -s http://localhost:$PORTA/api/v1/veiculos/3 | jq .
+```
+(Precisa ter feito o Exercício 2 antes, senão o veículo 3 não existe.)
 
 ---
 
 ### Exercício 6
-O que fazer: Tentar atualizar ou deletar um veículo com ID inexistente (99) e confirmar o 404 Not Found.
+O que fazer: Tentar atualizar e deletar um veículo com ID inexistente (99) e validar o 404 Not Found.
 
 Comando:
-curl -s -i -X DELETE http://localhost:3003/api/v1/veiculos/99
+```
+curl -s -i -X DELETE http://localhost:$PORTA/api/v1/veiculos/99
 
-Pra que serve: testa o tratamento de erro da API quando você pede algo que não existe — uma API bem feita deve responder `404 Not Found` em vez de travar ou dar erro genérico.
+curl -s -i -X PATCH http://localhost:$PORTA/api/v1/veiculos/99/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"EM_ROTA"}'
+```
+
+Pra que serve: testa o erro de "não encontrado". Resultado esperado nos dois: `HTTP/1.1 404 Not Found` com a mensagem "Veiculo nao encontrado.".
 
 ---
 
 ### Exercício 7
-O que fazer: Adicionar uma rota PUT que substitui todos os dados de um veículo de uma vez.
+O que fazer: Adicionar uma rota PUT (`/api/v1/veiculos/:id`) que substitui todos os dados de um veículo de uma vez.
 
-No `telemetria.js` (ou arquivo de rotas), adicionar algo como:
-app.put('/api/v1/veiculos/:id', (req, res) => {
-  const { id } = req.params;
-  // lógica pra substituir o veículo inteiro com os dados de req.body
-  res.json({ mensagem: `Veículo ${id} atualizado por completo` });
+**Código atualizado - Exercício 7** (frota_api.js completo, com a rota PUT nova no item 6):
+
+Passo 1: parar o servidor.
+```
+pkill -f frota_api.js
+```
+
+Passo 2: recriar o arquivo inteiro (isso sobrescreve o anterior).
+```
+cat > frota_api.js << 'EOF'
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3003;
+
+app.use(express.json());
+
+// Banco de dados em memoria
+let veiculos = [
+    { id: 1, placa: "ABC-1234", montadora: "Scania", modelo: "R450", status: "DISPONIVEL" },
+    { id: 2, placa: "XYZ-9876", montadora: "Mercedes-Benz", modelo: "Actros", status: "EM_ROTA" }
+];
+
+// 1. GET /api/v1/veiculos - Listar todos os veiculos (Suporta filtro por status query param)
+app.get('/api/v1/veiculos', (req, res) => {
+    const { status } = req.query;
+    if (status) {
+        const filtrados = veiculos.filter(v => v.status.toUpperCase() === status.toUpperCase());
+        return res.status(200).json(filtrados);
+    }
+    res.status(200).json(veiculos);
 });
 
-Comando pra testar:
-curl -s -i -X PUT http://localhost:3003/api/v1/veiculos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"montadora": "Scania", "modelo": "R450", "placa": "ABC-1234", "status": "DISPONIVEL"}'
+// 2. GET /api/v1/veiculos/:id - Buscar veiculo por ID
+app.get('/api/v1/veiculos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const veiculo = veiculos.find(v => v.id === id);
+    if (!veiculo) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado na base de dados." });
+    }
+    res.status(200).json(veiculo);
+});
 
-Pra que serve: diferença chave do `PUT` pro `PATCH`: o `PUT` espera **todos** os campos do objeto, porque ele substitui o recurso inteiro — se faltar um campo, ele pode até apagar o que não foi enviado.
+// 3. POST /api/v1/veiculos - Cadastrar novo veiculo (Criacao)
+app.post('/api/v1/veiculos', (req, res) => {
+    const { placa, montadora, modelo } = req.body;
+    if (!placa || !montadora || !modelo) {
+        return res.status(400).json({ erro: "Campos 'placa', 'montadora' e 'modelo' sao obrigatorios." });
+    }
+    const novoVeiculo = {
+        id: veiculos.length + 1,
+        placa,
+        montadora,
+        modelo,
+        status: "DISPONIVEL"
+    };
+    veiculos.push(novoVeiculo);
+    res.status(201).json(novoVeiculo);
+});
+
+// 4. PATCH /api/v1/veiculos/:id/status - Atualizar status do veiculo
+app.patch('/api/v1/veiculos/:id/status', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    const veiculo = veiculos.find(v => v.id === id);
+
+    if (!veiculo) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    if (!status) {
+        return res.status(400).json({ erro: "O campo 'status' e obrigatorio." });
+    }
+
+    veiculo.status = status.toUpperCase();
+    res.status(200).json({ mensagem: "Status atualizado com sucesso!", veiculo });
+});
+
+// 5. DELETE /api/v1/veiculos/:id - Remover veiculo da frota
+app.delete('/api/v1/veiculos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = veiculos.findIndex(v => v.id === id);
+    if (index === -1) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    veiculos.splice(index, 1);
+    res.status(200).json({ mensagem: `Veiculo ID ${id} removido com sucesso.` });
+});
+
+// 6. PUT /api/v1/veiculos/:id - Substituir TODOS os dados do veiculo (NOVO)
+app.put('/api/v1/veiculos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { placa, montadora, modelo, status } = req.body;
+    const index = veiculos.findIndex(v => v.id === id);
+
+    if (index === -1) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    if (!placa || !montadora || !modelo) {
+        return res.status(400).json({ erro: "Campos 'placa', 'montadora' e 'modelo' sao obrigatorios." });
+    }
+
+    veiculos[index] = {
+        id,
+        placa,
+        montadora,
+        modelo,
+        status: status ? status.toUpperCase() : "DISPONIVEL"
+    };
+    res.status(200).json(veiculos[index]);
+});
+
+app.listen(PORT, () => {
+    console.log(`[Binario Tech] API de Frotas rodando em http://localhost:${PORT}`);
+});
+EOF
+```
+
+Passo 3: subir de novo e testar.
+```
+PORT=$PORTA node frota_api.js &
+
+curl -s -i -X PUT http://localhost:$PORTA/api/v1/veiculos/1 \
+  -H "Content-Type: application/json" \
+  -d '{"placa":"NEW-0001","montadora":"Scania","modelo":"R540","status":"DISPONIVEL"}'
+
+curl -s http://localhost:$PORTA/api/v1/veiculos/1 | jq .
+```
+
+Pra que serve: o `PUT` **substitui o veículo inteiro** (diferente do `PATCH`, que muda só um campo). Resultado esperado: `HTTP/1.1 200 OK`, e o `GET` seguinte mostra o veículo 1 com a placa `NEW-0001` e modelo `R540`. Se faltar `placa`, `montadora` ou `modelo`, volta 400, e com ID inexistente volta 404.
+
+Lembre: ao reiniciar, os dados voltam ao início (só IDs 1 e 2).
 
 ---
 
 ### Exercício 8
-O que fazer: Script Bash que cadastra 2 veículos, atualiza 1 e deleta o outro, logando tudo em `crud_result.log`.
+O que fazer: Criar o script Bash `teste_crud.sh` que cadastra 2 veículos, atualiza 1 e deleta o outro, registrando tudo em `crud_result.log`.
 
 Comando pra criar:
+```
 cat > teste_crud.sh << 'EOF'
 #!/bin/bash
-echo "=== Cadastrando veículo 1 ===" >> crud_result.log
-curl -s -X POST http://localhost:3003/api/v1/veiculos \
-  -H "Content-Type: application/json" \
-  -d '{"montadora": "Scania", "modelo": "R450", "placa": "AAA-1111"}' >> crud_result.log
+PORTA=${PORTA:-3003}
+BASE="http://localhost:$PORTA/api/v1/veiculos"
+LOG="crud_result.log"
 
-echo "=== Cadastrando veículo 2 ===" >> crud_result.log
-curl -s -X POST http://localhost:3003/api/v1/veiculos \
-  -H "Content-Type: application/json" \
-  -d '{"montadora": "Mercedes", "modelo": "Actros", "placa": "BBB-2222"}' >> crud_result.log
+echo "=== TESTE CRUD - $(date) ===" > $LOG
 
-echo "=== Atualizando veículo 1 (ID 1) ===" >> crud_result.log
-curl -s -X PATCH http://localhost:3003/api/v1/veiculos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"status": "EM_ROTA"}' >> crud_result.log
+echo "--- 1. Cadastrando veiculo 1 ---" >> $LOG
+R1=$(curl -s -X POST $BASE -H "Content-Type: application/json" -d '{"placa":"AAA-1111","montadora":"Scania","modelo":"R450"}')
+echo "$R1" >> $LOG
+ID1=$(echo "$R1" | jq -r .id)
 
-echo "=== Deletando veículo 2 (ID 2) ===" >> crud_result.log
-curl -s -X DELETE http://localhost:3003/api/v1/veiculos/2 >> crud_result.log
+echo "--- 2. Cadastrando veiculo 2 ---" >> $LOG
+R2=$(curl -s -X POST $BASE -H "Content-Type: application/json" -d '{"placa":"BBB-2222","montadora":"Mercedes-Benz","modelo":"Actros"}')
+echo "$R2" >> $LOG
+ID2=$(echo "$R2" | jq -r .id)
 
-echo "=== Teste CRUD finalizado ===" >> crud_result.log
+echo "--- 3. Atualizando status do veiculo $ID1 ---" >> $LOG
+curl -s -X PATCH $BASE/$ID1/status -H "Content-Type: application/json" -d '{"status":"EM_ROTA"}' >> $LOG
+echo "" >> $LOG
+
+echo "--- 4. Deletando veiculo $ID2 ---" >> $LOG
+curl -s -X DELETE $BASE/$ID2 >> $LOG
+echo "" >> $LOG
+
+echo "=== FIM DO TESTE ===" >> $LOG
 EOF
 chmod +x teste_crud.sh
 ./teste_crud.sh
+cat crud_result.log
+```
 
-Pra que serve: o script automatiza um teste completo de CRUD (Create, Read, Update, Delete) numa tacada só, e o `>>` vai acumulando cada etapa dentro do `crud_result.log`, criando um registro de tudo que foi testado.
+Pra que serve: o script faz o CRUD inteiro sozinho. Ele guarda o ID de cada veículo cadastrado (`jq -r .id`) e usa esses IDs pra atualizar o primeiro e deletar o segundo. O `>` no começo recria o log a cada execução, e o `>>` vai acrescentando cada etapa. O servidor precisa estar rodando.
 
+---
+
+### Extra - script start no package.json
+Caso a prova peça (como na Aula 03):
+
+Comando:
+```
+npm pkg set scripts.start="node frota_api.js"
+cat package.json
+```
+
+Pra que serve: cria o atalho `"start": "node frota_api.js"`, e daí `npm start` sobe a API.
+
+---
+
+### Entrega - versionar e enviar pro GitHub
+
+Comando:
+```
+cd ~/binario_tech
+git status
+git add prova_aula04
+git commit -m "prova: aula04 - API RESTful de frota de veiculos"
+git push origin main
+```
+
+Pra que serve: `git status` mostra o que mudou (o `node_modules` **não** pode aparecer, ele é ignorado pelo `.gitignore` da raiz). `git add prova_aula04` prepara os arquivos da prova, `git commit` grava no histórico e `git push origin main` envia pro GitHub.
+
+Arquivos pra anexar na entrega: `frota_api.js`, `teste_crud.sh` e `crud_result.log`. Baixe do site do GitHub se o trabalho foi feito no servidor via SSH. Print do terminal: a execução do `teste_crud.sh` (com o `cat crud_result.log`) e o `git push` final.
+
+---
+
+### Se der erro
+
+- `Error: listen EADDRINUSE ... :::3003` → já tem um servidor rodando na porta. Rode `pkill -f frota_api.js` e suba de novo.
+- `curl: (7) Failed to connect` → o servidor não está rodando. Rode `PORT=$PORTA node frota_api.js &`.
+- `Cannot PATCH /api/v1/veiculos/3` → faltou o `/status` no final da URL.
+- `jq: parse error` → a resposta não veio em JSON (servidor fora do ar ou URL errada).
+- `Cannot find module 'express'` → faltou o `npm install express`, ou você não está dentro da pasta `prova_aula04`.
+- O Exercício 5 deu 404 → o veículo 3 não existe (Exercício 2 não feito, ou o servidor foi reiniciado).
+- `git push` rejeitado → rode `git pull origin main` e depois `git push origin main` de novo.
+- `Please tell me who you are` → configure o Git uma vez:
+```
+git config --global user.name "Seu Nome"
+git config --global user.email "seu@email.com"
+```
 
 
 ## Aula 05 - Middlewares, Validação e Segurança
