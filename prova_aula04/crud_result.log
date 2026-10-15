@@ -1,0 +1,10 @@
+=== TESTE CRUD - qui 15 out 2026 13:53:58 -03 ===
+--- 1. Cadastrando veiculo 1 ---
+{"id":5,"placa":"AAA-1111","montadora":"Scania","modelo":"R450","status":"DISPONIVEL"}
+--- 2. Cadastrando veiculo 2 ---
+{"id":6,"placa":"BBB-2222","montadora":"Mercedes-Benz","modelo":"Actros","status":"DISPONIVEL"}
+--- 3. Atualizando status do veiculo 5 ---
+{"mensagem":"Status atualizado com sucesso!","veiculo":{"id":5,"placa":"AAA-1111","montadora":"Scania","modelo":"R450","status":"EM_ROTA"}}
+--- 4. Deletando veiculo 6 ---
+{"mensagem":"Veiculo ID 6 removido com sucesso."}
+=== FIM DO TESTE ===
