@@ -1,0 +1,10 @@
+{"erro":"Acesso nao autorizado. Header 'X-API-KEY' invalido ou ausente."}
+HTTP 401
+{"erro":"CNH invalida. Deve conter exatamente 11 digitos numericos."}
+HTTP 400
+{"erro":"Endpoint nao encontrado no servidor Binario Tech."}
+HTTP 404
+{"id":5,"nome":"Roberto Souza","cnh":"55544433322","categoria":"E","ativo":true}
+HTTP 201
+[{"id":1,"nome":"Carlos Silva","cnh":"12345678900","categoria":"E","ativo":true},{"id":2,"nome":"Ana Pereira","cnh":"98765432100","categoria":"D","ativo":true},{"id":3,"nome":"Roberto Souza","cnh":"55544433322","categoria":"E","ativo":true},{"id":4,"nome":"Roberto Souza","cnh":"55544433322","categoria":"E","ativo":true},{"id":5,"nome":"Roberto Souza","cnh":"55544433322","categoria":"E","ativo":true}]
+HTTP 200
